@@ -2,7 +2,6 @@ import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { Button } from "@/components/ui/button"
 import { load } from '@tauri-apps/plugin-store'
-import '../App.css'
 
 function Inicio() {
   const navigate = useNavigate()
@@ -58,12 +57,12 @@ function Inicio() {
   return (
     <>
       <div className="h-screen flex flex-col">
-        <div className='Cabecera w-fit mx-auto'>
-          <h1 style={{ fontFamily: "Array67", color: "green" }}>{tituloVisible}</h1>
+        <div className='Cabecera w-fit mx-auto mt-4'>
+          <h1 style={{ fontFamily: "Array67", color: "green",fontSize: "44px"}}>{tituloVisible}</h1>
         </div>
-        <div className='Cuerpo flex-1 flex flex-col text-center'>
-          <p style={{ fontSize: "8px", color: "green" }}>{textoVisible}</p>
-          <Button onClick={() => navigate('/crear')} className="my-auto" style={{ fontSize: "40px" }} variant="ghost">GO</Button>
+        <div className='Cuerpo mt-3 flex-1 flex flex-col text-center'>
+          <p style={{ fontSize: "34px", color: "green" }}>{textoVisible}</p>
+          <Button onClick={() => navigate('/crear')} className="my-auto" style={{ fontSize: "100px" }} variant="ghost">GO</Button>
         </div>
       </div>
     </>
