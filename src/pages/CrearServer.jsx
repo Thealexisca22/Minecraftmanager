@@ -3,6 +3,7 @@ import { load } from '@tauri-apps/plugin-store'
 import { Input } from "@/components/ui/input"
 import { invoke } from '@tauri-apps/api/core'
 import { open } from '@tauri-apps/plugin-dialog'
+import { useNavigate } from 'react-router-dom'
 import {
   Select,
   SelectContent,
@@ -15,6 +16,9 @@ import {
 
 
 function CrearServer() {
+
+  const navigate = useNavigate()
+  const [nombreServidor, setNombreServidor] = useState("")
   const [versiones, setVersiones] = useState([])
   const [cpus, setCpus] = useState(0)
   const [cpusSeleccionadas, setCpusSeleccionadas] = useState(0)
@@ -22,9 +26,10 @@ function CrearServer() {
   const [ramSeleccionada, setRamSeleccionada] = useState(0)
   const [discos, setDiscos] = useState([])
   const [discoSeleccionado, setDiscoSeleccionado] = useState(null)
-  const [almacenamientoAsignado, setAlamacenamientoAsignado] = useState()
+  const [almacenamientoAsignado, setAlamacenamientoAsignado] = useState(1)
   const [modoPirata, setModoPirata] = useState(false)
   const [tipo, setTipo] = useState("VANILLA");
+  const [versionSeleccionada, setVersionSeleccionada] = useState("")
   const textos = {
     VANILLA:
       "Vanilla: servidor oficial sin mods, solo plugins de datapacks.",
@@ -58,12 +63,44 @@ function CrearServer() {
   }
 
   const eliminarArchivo = (index) => {
-  if (tipo === "PAPER") {
-    setPlugins((prev) => prev.filter((_, i) => i !== index));
-  } else {
-    setMods((prev) => prev.filter((_, i) => i !== index));
+    if (tipo === "PAPER") {
+      setPlugins((prev) => prev.filter((_, i) => i !== index));
+    } else {
+      setMods((prev) => prev.filter((_, i) => i !== index));
+    }
+  };
+
+  const crearServidor = async () => {
+    if (!nombreServidor.trim()) {
+      alert('Por favor, introduce un nombre para el servidor')
+      return
+    }
+    if (!versionSeleccionada) {
+      alert('Por favor, selecciona una versión de Minecraft')
+      return
+    }
+
+
+    const resultado = await invoke('crear_servidor', {
+      nombre: nombreServidor,
+      version: versionSeleccionada,
+      tipo: tipo,
+      ram: ramSeleccionada,
+      cpus: cpusSeleccionadas,
+      almacenamiento: almacenamientoAsignado,
+      disco: discoSeleccionado,
+      modoPirata: modoPirata,
+      mods: mods,
+      plugins: plugins
+    })
+    console.log(resultado)
+    navigate(`/servidor/${nombreServidor}`, {
+      state: {
+        puerto: JSON.parse(resultado).puerto
+      }
+    })
+
   }
-};
 
   useEffect(() => {
     const leerVersiones = async () => {
@@ -111,13 +148,20 @@ function CrearServer() {
       <div className="Formulario mx-auto mt-6" style={{ maxWidth: "97vw" }}>
         <div className='flex flex-col mt-4'>
           <label htmlFor="Nombre">Nombre del servidor</label>
-          <Input style={{ maxHeight: "60px" }} id="Nombre" placeholder="Nombre del servidor" />
+          <Input style={{ maxHeight: "60px" }} id="Nombre"
+            placeholder="Nombre del servidor"
+            value={nombreServidor}
+            onChange={(e) => setNombreServidor(e.target.value)}
+          />
         </div>
 
         <div className='Principal w-full grid grid-cols-2 gap-6 mt-4'>
           <div className='ColumnaIZ max-w-xxl flex flex-col'>
             <label htmlFor='version'>Version</label>
-            <select id="version" placeholder="1.22" className="w-full h-9 rounded-md border px-3 text-sm">
+            <select id="version" placeholder="1.22" className="w-full h-9 rounded-md border px-3 text-sm"
+              value={versionSeleccionada}
+              onChange={(e) => setVersionSeleccionada(e.target.value)}
+            >
               <option value="" disabled selected>Selecciona una versión</option>,
               {versiones.map(v => (
                 <option key={v.id} value={v.id}>{v.id}</option>
@@ -230,7 +274,7 @@ function CrearServer() {
             disabled={tipo === "VANILLA"}
           />
           <div className='flex items-center gap-2 mt-2'>
-            <span className="text-sm" style={{color: "gray" }}>o añade archivos manualmente</span>
+            <span className="text-sm" style={{ color: "gray" }}>o añade archivos manualmente</span>
           </div>
           <div className='flex flex-col mt-2 gap-2'>
             <button
@@ -248,17 +292,17 @@ function CrearServer() {
                     key={index}
                     className="flex items-center justify-between gap-2 py-1"
                   >
-                    <span className="text-sm" style={{color: "gray" }}>
+                    <span className="text-sm" style={{ color: "gray" }}>
                       📦 {archivo.split("\\").pop()}
                       <button
-                      onClick={() => eliminarArchivo(index)}
-                      className="text-red-500 ml-1 hover:text-red-700 text-sm"
-                    >
-                      ✕
-                    </button>
+                        onClick={() => eliminarArchivo(index)}
+                        className="text-red-500 ml-1 hover:text-red-700 text-sm"
+                      >
+                        ✕
+                      </button>
                     </span>
 
-                    
+
                   </div>
                 ))}
               </div>
@@ -276,6 +320,9 @@ function CrearServer() {
           </div>
 
         </div>
+        <button onClick={crearServidor}>
+          Crear servidor
+        </button>
       </div>
     </div>
   )

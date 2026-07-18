@@ -26,3 +26,7 @@ tauri-plugin-log = "2"
 tauri-plugin-store = "2"
 sysinfo = "0.36.1"
 tauri-plugin-dialog = "2"
+tauri-plugin-shell = "2"
+kube = { version = "0.98", features = ["runtime", "derive"] }
+k8s-openapi = { version = "0.24", features = ["v1_31"] }
+tokio = { version = "1", features = ["full"] }
