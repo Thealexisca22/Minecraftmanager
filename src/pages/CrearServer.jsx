@@ -75,31 +75,61 @@ function CrearServer() {
       alert('Por favor, introduce un nombre para el servidor')
       return
     }
+
     if (!versionSeleccionada) {
       alert('Por favor, selecciona una versión de Minecraft')
       return
     }
 
-
-    const resultado = await invoke('crear_servidor', {
-      nombre: nombreServidor,
+    const puerto = await invoke('crear_servidor', {
+      nombre: nombreServidor.toLowerCase().replace(/\s+/g, '-'),
       version: versionSeleccionada,
-      tipo: tipo,
+      tipo,
       ram: ramSeleccionada,
       cpus: cpusSeleccionadas,
       almacenamiento: almacenamientoAsignado,
       disco: discoSeleccionado,
-      modoPirata: modoPirata,
-      mods: mods,
-      plugins: plugins
-    })
-    console.log(resultado)
-    navigate(`/servidor/${nombreServidor}`, {
-      state: {
-        puerto: JSON.parse(resultado).puerto
-      }
+      modoPirata,
+      mods,
+      plugins
     })
 
+    const store = await load('servidores.json')
+    const servidoresGuardados = await store.get('servidores') || []
+    if (servidoresGuardados.find(s => s.nombre === nombreServidor)) {
+      alert('Ya existe un servidor con ese nombre')
+      return
+    }
+
+    const nuevoServidor = {
+      nombre: nombreServidor.toLowerCase().replace(/\s+/g, '-'),
+      version: versionSeleccionada,
+      tipo,
+      ram: ramSeleccionada,
+      cpus: cpusSeleccionadas,
+      almacenamiento: almacenamientoAsignado,
+      disco: discoSeleccionado,
+      modoPirata,
+      mods,
+      plugins,
+      puerto,
+      fechaCreacion: new Date().toISOString()
+    }
+
+    const nuevaLista = [...servidoresGuardados, nuevoServidor]
+
+    await store.set('servidores', nuevaLista)
+    await store.save()
+
+    await invoke('arrancar_servidor', { nombre: nombreServidor })
+    
+    console.log(puerto)
+
+    navigate(`/servidor/${nombreServidor}`, {
+      state: {
+        puerto
+      }
+    })
   }
 
   useEffect(() => {
